@@ -1,11 +1,18 @@
 from fastapi import FastAPI
 from enum import Enum
-
+from pydantic import BaseModel
 
 class ModelName(str, Enum):
     dawidnet = "dawidnet"
     tomeknet = "tomeknet"
     adinet = "adinet"
+
+
+class Item(BaseModel):
+    name: str
+    description: str | None = None
+    price: float
+    tax: float | None = None
 
 
 app = FastAPI()
@@ -39,3 +46,19 @@ async def read_user(user_id: int):
 @app.get("/items/{item_id}")
 async def read_item(item_id: int):
     return {"item_id": item_id}
+
+@app.post("/items")
+async def create_item(item: Item):
+    item_dict = item.dict()
+    if item.tax:
+        end_price = item.price + item.tax
+        item_dict.update({"end_price": end_price})
+    return item_dict
+
+
+@app.put("/items/{item_id}")
+async def update_item(item_id: int, item: Item, q: str | None = None):
+    result = {"item_id": item_id, **item.dict()}
+    if q:
+        result.update({"q": q})
+    return result
