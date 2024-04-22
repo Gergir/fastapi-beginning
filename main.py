@@ -1,6 +1,8 @@
-from fastapi import FastAPI
+from typing import Annotated
+from fastapi import FastAPI, Query
 from enum import Enum
 from pydantic import BaseModel
+
 
 class ModelName(str, Enum):
     dawidnet = "dawidnet"
@@ -43,9 +45,29 @@ async def read_user(user_id: int):
     return {"user_id": user_id}
 
 
+@app.get("/items")
+async def read_items(
+        query_item: Annotated[str, Query(
+            alias="query-item",
+            title="My requested query",
+            description="This is just a simple query parameter",
+            min_length=3,
+            deprecated=True
+        )
+        ] = None):
+    result = {"items": [
+        {"item_id": "item_id1"}, {"item_id": "item_id2"}
+    ]}
+    if query_item:
+        result.update({"q": query_item})
+    return result
+
+
 @app.get("/items/{item_id}")
-async def read_item(item_id: int):
-    return {"item_id": item_id}
+async def read_item(item_id: int, needy: str, skip: int = 0, limit: int | None = None):
+    item = {"item_id": item_id, "needy": needy, "skip": skip, "limit": limit}
+    return item
+
 
 @app.post("/items")
 async def create_item(item: Item):
