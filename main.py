@@ -1,5 +1,5 @@
 from typing import Annotated
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, Query, Path
 from enum import Enum
 from pydantic import BaseModel
 
@@ -35,6 +35,20 @@ async def get_model(model_name: ModelName):
     return {"model_name": model_name, "message": "Tomek"}
 
 
+@app.get("/items/{item_id}")
+async def read_items(
+        item_id: Annotated[int, Path(title="The ID of the item to get", gt=0, lt=100)],
+        q: str,
+        size: Annotated[float, Query(gt=0, le=10.4)] = None
+):
+
+    results = {"item_id": item_id}
+    results.update({"q": q})
+    if size:
+        results.update({"size": size})
+    return results
+
+
 @app.get("/users/me")
 async def read_current_user():
     return {"user_id": "current_user_id"}
@@ -43,6 +57,12 @@ async def read_current_user():
 @app.get("/users/{user_id}")
 async def read_user(user_id: int):
     return {"user_id": user_id}
+
+
+# @app.get("/items/{item_id}")
+# async def read_item(item_id: int, needy: str, skip: int = 0, limit: int | None = None):
+#     item = {"item_id": item_id, "needy": needy, "skip": skip, "limit": limit}
+#     return item
 
 
 @app.get("/items")
@@ -61,12 +81,6 @@ async def read_items(
     if query_item:
         result.update({"q": query_item})
     return result
-
-
-@app.get("/items/{item_id}")
-async def read_item(item_id: int, needy: str, skip: int = 0, limit: int | None = None):
-    item = {"item_id": item_id, "needy": needy, "skip": skip, "limit": limit}
-    return item
 
 
 @app.post("/items")
