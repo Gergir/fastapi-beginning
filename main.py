@@ -1,5 +1,5 @@
 from typing import Annotated
-from fastapi import FastAPI, Query, Path
+from fastapi import FastAPI, Query, Path, Body
 from enum import Enum
 from pydantic import BaseModel
 
@@ -15,6 +15,11 @@ class Item(BaseModel):
     description: str | None = None
     price: float
     tax: float | None = None
+
+
+class User(BaseModel):
+    username: str
+    full_username: str | None = None
 
 
 app = FastAPI()
@@ -37,13 +42,13 @@ async def get_model(model_name: ModelName):
 
 @app.get("/items/{item_id}")
 async def read_items(
-        item_id: Annotated[int, Path(title="The ID of the item to get", gt=0, lt=100)],
-        q: str,
+        item_id: Annotated[int, Path(title="The ID of the item to get", ge=0, le=100)],
+        q: str | None = None,
         size: Annotated[float, Query(gt=0, le=10.4)] = None
 ):
-
     results = {"item_id": item_id}
-    results.update({"q": q})
+    if q:
+        results.update({"q": q})
     if size:
         results.update({"size": size})
     return results
@@ -92,9 +97,27 @@ async def create_item(item: Item):
     return item_dict
 
 
+# @app.put("/items/{item_id}")
+# async def update_item(
+#         item_id: Annotated[int, Path(title="The ID of the item to get", ge=0, le=100)],
+#         q: str | None = None,
+#         size: Annotated[float | None, Query(gt=0, le=10.4)] = None,
+#         item: Item | None = None):
+#
+#     result = {"item_id": item_id}
+#     if q:
+#         result.update({"q": q})
+#     if size:
+#         result.update({"size": size})
+#     if item:
+#         result.update({"item": item})
+#     return result
+
 @app.put("/items/{item_id}")
-async def update_item(item_id: int, item: Item, q: str | None = None):
-    result = {"item_id": item_id, **item.dict()}
-    if q:
-        result.update({"q": q})
+async def update_item(item_id: int,
+                      item: Item,
+                      user: User,
+                      importance: Annotated[int | None, Body(ge=1)]
+                      ):
+    result = {"item_id": item_id, "item": item, "user": user, "importance": importance}
     return result
