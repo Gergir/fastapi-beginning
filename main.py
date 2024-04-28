@@ -1,7 +1,7 @@
 from typing import Annotated
 from fastapi import FastAPI, Query, Path, Body
 from enum import Enum
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class ModelName(str, Enum):
@@ -12,8 +12,10 @@ class ModelName(str, Enum):
 
 class Item(BaseModel):
     name: str
-    description: str | None = None
-    price: float
+    description: str | None = Field(
+        default=None, title="The description of the item", max_length=300
+    )
+    price: float = Field(gt=0, description="The amount of money the item cost")
     tax: float | None = None
 
 
@@ -42,7 +44,7 @@ async def get_model(model_name: ModelName):
 
 @app.get("/items/{item_id}")
 async def read_items(
-        item_id: Annotated[int, Path(title="The ID of the item to get", ge=0, le=100)],
+        item_id: Annotated[int, Path(title="The ID of the item to get", gt=0, le=100)],
         q: str | None = None,
         size: Annotated[float, Query(gt=0, le=10.4)] = None
 ):
