@@ -1,7 +1,7 @@
 from typing import Annotated
 from fastapi import FastAPI, Query, Path, Body
 from enum import Enum
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, HttpUrl
 
 
 class ModelName(str, Enum):
@@ -10,13 +10,25 @@ class ModelName(str, Enum):
     adinet = "adinet"
 
 
+# class Item(BaseModel):
+#     name: str
+#     description: str | None = Field(
+#         default=None, title="The description of the item", max_length=300
+#     )
+#     price: float = Field(gt=0, description="The amount of money the item cost")
+#     tax: float | None = None
+class Image(BaseModel):
+    url: HttpUrl
+    name: str
+
+
 class Item(BaseModel):
     name: str
-    description: str | None = Field(
-        default=None, title="The description of the item", max_length=300
-    )
-    price: float = Field(gt=0, description="The amount of money the item cost")
+    description: str | None = None
+    price: float
     tax: float | None = None
+    tags: set[str] = set()
+    images: list[Image] | None = None
 
 
 class User(BaseModel):
@@ -25,6 +37,16 @@ class User(BaseModel):
 
 
 app = FastAPI()
+
+
+@app.post("/intex-weights")
+async def create_index_weights(weights: dict[int, float]):
+    return weights
+
+
+@app.post("/images/multiple")
+async def create_multiple_images(images: list[Image]):
+    return images
 
 
 @app.get("/")
