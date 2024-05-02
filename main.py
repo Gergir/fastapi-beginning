@@ -22,13 +22,35 @@ class Image(BaseModel):
     name: str
 
 
-class Item(BaseModel):
+"""class Item(BaseModel):  # example added with model_config
     name: str
     description: str | None = None
     price: float
     tax: float | None = None
-    tags: set[str] = set()
-    images: list[Image] | None = None
+    # tags: set[str] = set()
+    # images: list[Image] | None = None
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "name": "Milk",
+                    "description": "Product gathered from a cow",
+                    "price": 4.00,
+                    "tax": 0.25
+                }
+            ]
+        }
+    }"""
+
+
+class Item(BaseModel):  # example added with Fields
+    name: str = Field(examples=["Car"])
+    description: str | None = Field(default=None, examples=["Most common vehicle"])
+    price: float = Field(examples=[4000.00])
+    tax: float | None = Field(default=None, examples=[500.00])
+    # tags: set[str] = set()
+    # images: list[Image] | None = None
 
 
 class User(BaseModel):
@@ -139,7 +161,17 @@ async def create_item(item: Item):
 
 @app.put("/items/{item_id}")
 async def update_item(item_id: int,
-                      item: Item,
+                      item: Annotated[Item, Body(
+                          examples=[
+                              {
+                                  "name": "Milk",
+                                  "description": "Product gathered from a cow",
+                                  "price": 4.00,
+                                  "tax": 0.25
+                              }
+                          ]
+                      )
+                      ],
                       user: User,
                       importance: Annotated[int | None, Body(ge=1)]
                       ):
