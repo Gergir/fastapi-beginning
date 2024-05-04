@@ -1,5 +1,5 @@
 from typing import Annotated
-from fastapi import FastAPI, Query, Path, Body
+from fastapi import FastAPI, Query, Path, Body, Cookie
 from enum import Enum
 from pydantic import BaseModel, Field, HttpUrl
 from datetime import datetime, time, timedelta
@@ -119,6 +119,7 @@ async def read_user(user_id: int):
 
 @app.get("/items")
 async def read_items(
+        ads_id: Annotated[str | None, Cookie()] = None,
         query_item: Annotated[str, Query(
             alias="query-item",
             title="My requested query",
