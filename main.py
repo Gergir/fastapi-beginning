@@ -2,7 +2,8 @@ from typing import Annotated
 from fastapi import FastAPI, Query, Path, Body
 from enum import Enum
 from pydantic import BaseModel, Field, HttpUrl
-
+from datetime import datetime, time, timedelta
+from uuid import UUID
 
 class ModelName(str, Enum):
     dawidnet = "dawidnet"
@@ -159,21 +160,41 @@ async def create_item(item: Item):
 #         result.update({"item": item})
 #     return result
 
+# @app.put("/items/{item_id}")
+# async def update_item(item_id: int,
+#                       item: Annotated[Item, Body(
+#                           examples=[
+#                               {
+#                                   "name": "Milk",
+#                                   "description": "Product gathered from a cow",
+#                                   "price": 4.00,
+#                                   "tax": 0.25
+#                               }
+#                           ]
+#                       )
+#                       ],
+#                       user: User,
+#                       importance: Annotated[int | None, Body(ge=1)]
+#                       ):
+#     result = {"item_id": item_id, "item": item, "user": user, "importance": importance}
+#     return result
+
 @app.put("/items/{item_id}")
-async def update_item(item_id: int,
-                      item: Annotated[Item, Body(
-                          examples=[
-                              {
-                                  "name": "Milk",
-                                  "description": "Product gathered from a cow",
-                                  "price": 4.00,
-                                  "tax": 0.25
-                              }
-                          ]
-                      )
-                      ],
-                      user: User,
-                      importance: Annotated[int | None, Body(ge=1)]
-                      ):
-    result = {"item_id": item_id, "item": item, "user": user, "importance": importance}
-    return result
+async def update_item(
+        item_id: UUID,
+        start_datetime: Annotated[datetime, Body()],
+        end_datetime: Annotated[datetime, Body()],
+        process_after: Annotated[timedelta, Body()],
+        repeat_at: Annotated[time| None, Body()] = None
+):
+    start_process = start_datetime + process_after
+    duration = end_datetime - start_datetime
+    return {
+        "item_id": item_id,
+        "start_datetime": start_datetime,
+        "end_datetime": end_datetime,
+        "process_after": process_after,
+        "repeat_at": repeat_at,
+        "start_process": start_process,
+        "duration": duration
+    }
